@@ -1,8 +1,12 @@
+import Header from "./Components/Header";
+import Home from "./Components/Home";
+
 function App() {
 
   return (
     <>
-      <h1 className="text-6xl">Contador de calorias</h1>
+      <Header />
+      <Home />
     </>
   )
 }

@@ -1,13 +1,30 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { v4 as uuidv4 } from 'uuid'
 import { categories } from "../data/categories";
 import { Activity } from "../types";
+import { ActivityAction, ActivityState } from "../reducers/activity-reducer";
 
-const Form = () => {
-  const [customer, setCustomer] = useState<Activity>({
-    category: 1,
-    activity: "",
-    calories: 0
-  });
+type FormProps = {
+  dispatch: React.Dispatch<ActivityAction>
+  state: ActivityState
+}
+
+const initialState : Activity = {
+  id: uuidv4(),
+  category: 1,
+  activity: "",
+  calories: 0
+}
+
+const Form = ({ dispatch, state } : FormProps) => {
+  const [customer, setCustomer] = useState<Activity>(initialState);
+  
+  useEffect(() => {
+    if (state.activeId) {
+      const selectedActivity = state.activities.filter((activityFilter) => activityFilter.id === state.activeId)[0];
+      setCustomer(selectedActivity);
+    }
+  }, [state.activeId, state.activities])
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -15,14 +32,16 @@ const Form = () => {
     setCustomer({ ...customer, [name]: isNumericField ? Number(value) : value });
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log("guardando información...");
-  }
-
   const isActivityValid = () => {
     const { activity, calories } = customer;
     return activity.trim() !== '' && calories > 0;
+  }
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    dispatch({ type: "SAVE_ACTIVITY", payload: { newActivity: customer }})
+    setCustomer({ ...initialState, id: uuidv4() });
   }
 
   return (
@@ -74,7 +93,7 @@ const Form = () => {
         type="submit"
         className="bg-gray-900 hover:bg-gray-600 w-full p-2 font-bold uppercase text-white cursor-pointer 
           disabled:opacity-10"
-        value="Guardar comida o ejercicio"
+        value={customer.category === 1 ? "Guardar comida" : "Guardar ejercicio"}
         disabled={!isActivityValid()} 
       />
     </form>
